@@ -13,25 +13,29 @@ class User(db.Model, UserMixin):
     posts = db.relationship('Post', backref='user', passive_deletes = True)
     comments = db.relationship('Comment', backref='user', passive_deletes=True)
     likes = db.relationship('Like', backref='user', passive_deletes=True)
+    replies = db.relationship('Reply', backref='user', passive_deletes=True)
 
 
 #creating post model
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key = True)
+    title = db.Column(db.String(300), nullable = False)
     content = db.Column(db.Text, nullable = False)
     date_created = db.Column(db.DateTime(timezone = True), default = func.now())
     author = db.Column(db.Integer, db.ForeignKey('user.id', ondelete="CASCADE"), nullable = False)
     comments = db.relationship('Comment', backref='post', passive_deletes=True)
     likes = db.relationship('Like', backref='post', passive_deletes=True)
+    replies = db.relationship('Reply', backref='post', passive_deletes=True)
 
 
 #creating comments model
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    text = db.Column(db.String(200), nullable=False)
+    text = db.Column(db.String(300), nullable=False)
     date_created = db.Column(db.DateTime(timezone=True), default=func.now())
     author = db.Column(db.Integer, db.ForeignKey('user.id', ondelete="CASCADE"), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id', ondelete="CASCADE"), nullable=False)
+    replies = db.relationship('Reply', backref='comment', passive_deletes=True)
 
 #creating like model
 class Like(db.Model):
@@ -40,3 +44,12 @@ class Like(db.Model):
         'user.id', ondelete="CASCADE"), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey(
         'post.id', ondelete="CASCADE"), nullable=False)
+
+#creating reply model
+class Reply(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    text = db.Column(db.String(300), nullable=False)
+    date_created = db.Column(db.DateTime(timezone=True), default=func.now())
+    author = db.Column(db.Integer, db.ForeignKey('user.id', ondelete="CASCADE"), nullable = False)
+    post_id = db.Column(db.Integer, db.ForeignKey("post.id", ondelete="CASCADE"), nullable = False)
+    comment_id = db.Column(db.Integer, db.ForeignKey("comment.id", ondelete="CASCADE"), nullable = False)

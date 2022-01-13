@@ -26,7 +26,7 @@ def createApp():
     app.register_blueprint(auth, url_prefix = "/")
 
     #before creating the database we must import all our that we need inside our database
-    from .models import User, Post, Comment, Like
+    from .models import User, Post, Comment, Like, Reply
     create_database(app)
 
     #creating login manager

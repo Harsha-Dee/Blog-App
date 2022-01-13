@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
 from sqlalchemy.sql.expression import false
-from .models import Post, Comment, Like
+from .models import Post, Comment, Like, Reply
 from . import db
 
 views = Blueprint("views", __name__)
@@ -20,11 +20,12 @@ def home():
 @login_required
 def createPost():
     if request.method == 'POST':
-        post_content = request.form.get('text')
+        post_title = request.form.get('blog_title')
+        post_content = request.form.get('blog_content')
 
-        if post_content:
+        if post_content:                                    
             #print(post_content)
-            post = Post(content = post_content, author = current_user.id)
+            post = Post(title = post_title, content = post_content, author = current_user.id)
             db.session.add(post)
             db.session.commit()
             flash('post created', category='success')
@@ -32,7 +33,7 @@ def createPost():
         else:
             flash('post content cannot be empty', category='error')
 
-    return render_template("create_post.html", user = current_user)
+    return render_template("create_post2.html", user = current_user)
 
 
 @views.route("/delete_post/<id>")
@@ -63,6 +64,12 @@ def display_all_post(user_id):
 
     return render_template('posts.html', user = current_user, posts = posts, username = username)
 
+@views.route("/view_post/<post_id>")
+@login_required
+def display_full_post(post_id):
+    post = Post.query.filter_by(id = post_id).first()
+
+    return render_template('view_post.html', user = current_user, post = post)
 
 @views.route("/create-comment/<post_id>", methods=['POST'])
 @login_required
@@ -114,6 +121,37 @@ def like(post_id):
     else:
         like = Like(author=current_user.id, post_id=post_id)
         db.session.add(like)
+        db.session.commit()
+
+    return redirect(url_for('views.home'))
+
+
+@views.route("/create-reply/<post_id>/<comment_id>", methods=['POST'])
+@login_required
+def create_reply(post_id, comment_id):
+
+    reply_text = request.form.get('reply')
+
+    if not reply_text:
+        flash('Reply cannot be empty', category='error')
+    else:
+        reply = Reply(text = reply_text, author = current_user.id, post_id = post_id, comment_id = comment_id)
+        db.session.add(reply)
+        db.session.commit()
+
+    return redirect(url_for('views.home'))
+
+
+@views.route("/delete-reply/<reply_id>")
+@login_required
+def delete_reply(reply_id):
+
+    reply = Reply.query.filter_by(id = reply_id).first()
+
+    if not reply:
+        flash('Reply does not exists!', category='error')
+    else:
+        db.session.delete(reply)
         db.session.commit()
 
     return redirect(url_for('views.home'))

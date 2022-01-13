@@ -1,0 +1,182 @@
+{% extends "base.html"%} {% block title %} Login {% endblock %} {%block content
+%}
+
+<br />
+<div class="card body">
+  <h4>{{post.user.username}}</h4>
+  <br />
+  <div class="d-flex justify-content-between align-items-center">
+    <h2>{{post.title}}</h2>
+  </div>
+  <br />
+  <div>posted on {{post.date_created}}</div>
+  <br />
+  <hr />
+
+  <div>{{post.content}}</div>
+</div>
+
+<br />
+<br />
+<br />
+
+<form
+  class="input-group mb-3"
+  method="POST"
+  action="/create-comment/{{post.id}}"
+>
+  <input
+    type="text"
+    id="text"
+    name="text"
+    class="form-control"
+    placeholder="Comment something!"
+  />
+  <button type="submit" class="btn btn-primary">Comment</button>
+</form>
+
+<!-- collapse div for comments -->
+<div class="collapse" id="comments-{{post.id}}">
+  <!-- <div class="card"> -->
+  <!-- <div class="card-body" id="comments-expanded-{{post.id}}"> -->
+
+  {% for comment in post.comments %}
+
+  <div class="card">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <a href="/posts/{{comment.author}}">{{comment.user.username}}</a> :
+          {{comment.text}}
+        </div>
+        <div>
+          <small class="text-muted"> {{comment.date_created}}</small>
+          {% if user.id == comment.author or user.id == post.author %}
+          <div class="btn-group">
+            <button
+              type="button"
+              class="btn btn-sm btn-primary dropdown-toggle"
+              data-bs-toggle="dropdown"
+            ></button>
+            <ul class="dropdown-menu">
+              <li>
+                <a href="/delete-comment/{{comment.id}}" class="dropdown-item"
+                  >Delete</a
+                >
+              </li>
+            </ul>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      <br>
+
+
+      <!-- newcode -->
+      <div class="collapse" id = "replies-{{comment.id}}">
+        <div class="card">
+          <div class="card-body">
+
+            <!-- form for reply -->
+            <form
+              class="input-group mb-3"
+              method="POST"
+              action="/create-reply/{{post.id}}/{{comment.id}}"
+            >
+              <input
+                type="text"
+                id="text"
+                name="reply"
+                class="form-control"
+                placeholder="Add a public comment..."
+              />
+              <button type="submit" class="btn btn-primary">Comment</button>
+            </form>
+
+            <!-- looping replies -->
+            {% for reply in comment.replies %}
+
+
+            <div class="card">
+
+              <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <a href="/posts/{{reply.author}}">{{reply.user.username}}</a> :
+                    {{reply.text}}
+                  </div>
+                  <div>
+                    <small class="text-muted"> {{reply.date_created}}</small>
+                    {% if user.id == reply.author or user.id == post.author %}
+                    <div class="btn-group">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-primary dropdown-toggle"
+                        data-bs-toggle="dropdown"
+                      ></button>
+                      <ul class="dropdown-menu">
+                        <li>
+                          <a href="/delete-reply/{{reply.id}}" class="dropdown-item"
+                            >Delete</a
+                          >
+                        </li>
+                      </ul>
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+              <br>
+
+
+            {% endfor %}
+
+          </div>
+        </div>
+      </div>
+
+
+
+      <p class="card-text">
+        <a data-bs-toggle="collapse" href="#replies-{{comment.id}}" role="button">
+          <small>Add a public comment...</small>
+        </a>
+      </p>
+
+      <!-- newcodeending -->
+
+
+    </div>
+
+    <br />
+  </div>
+  <br />
+  {% endfor %}
+
+  <!-- </div> -->
+  <!-- </div> -->
+</div>
+
+<p class="card-text">
+  {% if post.comments|length > 0 %}
+  <a data-bs-toggle="collapse" href="#comments-{{post.id}}" role="button">
+    <small>View {{post.comments|length}} Comments</small>
+  </a>
+  {% else %}
+  <small class="text-muted">No Comments</small>
+  {% endif %}
+</p>
+
+<br />
+
+<!-- back button -->
+<div align="center">
+  <a href="/home"
+    ><button type="button" class="btn btn-lg btn-secondary">Back</button></a
+  >
+</div>
+
+{% endblock%}
